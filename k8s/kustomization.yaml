@@ -9,6 +9,6 @@ resources:
   - ingress.yaml
 # Image zentral setzen:  kubectl kustomize / kubectl apply -k k8s
 images:
-  - name: ghcr.io/OWNER/regex-trainer
-    newName: ghcr.io/OWNER/regex-trainer
+  - name: ghcr.io/schadler/regex-trainer
+    newName: ghcr.io/schadler/regex-trainer
     newTag: latest

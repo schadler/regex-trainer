@@ -20,7 +20,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: app
-          image: ghcr.io/OWNER/regex-trainer:latest   # OWNER = dein GitHub-Benutzer/Organisation
+          image: ghcr.io/schadler/regex-trainer:latest   # schadler = dein GitHub-Benutzer/Organisation
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

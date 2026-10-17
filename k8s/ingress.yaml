@@ -1,14 +1,21 @@
-# k3s bringt Traefik als Ingress-Controller mit.
-# Hostname anpassen (DNS-Eintrag oder /etc/hosts auf die Node-IP zeigen lassen).
+# HTTPS für regex.schadler.cloud mit Let's Encrypt (cert-manager)
+# Voraussetzung: k8s/cert-issuer.yaml ist angewendet, DNS zeigt auf den Server,
+# Ports 80 und 443 sind aus dem Internet erreichbar.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: regex-trainer
   namespace: regex-trainer
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: regex-trainer-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts: [regex.schadler.cloud]
+      secretName: regex-trainer-tls
   rules:
-    - host: regex.schule.local
+    - host: regex.schadler.cloud
       http:
         paths:
           - path: /
@@ -18,3 +25,14 @@ spec:
                 name: regex-trainer
                 port:
                   name: http
+---
+# http:// automatisch auf https:// umleiten
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: regex-trainer
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

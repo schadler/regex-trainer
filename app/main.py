@@ -14,6 +14,7 @@ import yaml
 from flask import (Flask, Response, abort, flash, g, jsonify, redirect,
                    render_template, request, session, url_for)
 from markupsafe import Markup
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import engine
 
@@ -43,6 +44,8 @@ def _secret_key():
 
 
 app = Flask(__name__)
+# hinter Traefik: https/Host/Client-IP aus den X-Forwarded-Headern übernehmen
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = _secret_key()
 app.config.update(SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_HTTPONLY=True,
                   JSON_AS_ASCII=False, MAX_CONTENT_LENGTH=256 * 1024)
