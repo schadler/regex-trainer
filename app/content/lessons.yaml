@@ -310,7 +310,7 @@
       group: 1
       title: "Benutzernamen"
       description: "Liefere in **Gruppe 1** den Teil einer E-Mail-Adresse **vor** dem @."
-      text: "Kontakt: max@htl.at, anna.berger@schule.at"
+      text: "Kontakt: max@htlpinkafeld.at, anna.berger@htlpinkafeld.at"
       expected: ["max", "anna.berger"]
       solution: '([\w.]+)@'
     - id: l08e3
@@ -403,6 +403,6 @@
       type: match
       title: "E-Mail-Adresse (vereinfacht)"
       description: "Benutzername (Wortzeichen, Punkt, Plus, Minus) **@** Domain mit mindestens einem Punkt."
-      match: ["max.muster@htl-wien.at", "a_b@schule.ac.at", "x+y@test.com"]
-      nomatch: ["max@", "@htl.at", "max htl.at", "max@htl"]
+      match: ["max.muster@htlpinkafeld.at", "a_b@schule.ac.at", "x+y@test.com"]
+      nomatch: ["max@", "@htlpinkafeld.at", "max htlpinkafeld.at", "max@htlpinkafeld"]
       solution: '[\w.+-]+@[\w-]+(\.[\w-]+)+'

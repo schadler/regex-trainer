@@ -89,8 +89,8 @@
   type: findall
   group: 1
   description: "Liefere in **Gruppe 1** die Domain (alles nach dem @) jeder E-Mail-Adresse."
-  text: "max@htl.at, anna@schule.ac.at"
-  expected: ["htl.at", "schule.ac.at"]
+  text: "max@htlpinkafeld.at, anna@schule.ac.at"
+  expected: ["htlpinkafeld.at", "schule.ac.at"]
   hidden:
     - text: "Mail an info@firma-x.com oder chef@it.firma-x.com!"
       expected: ["firma-x.com", "it.firma-x.com"]
@@ -125,8 +125,8 @@
   points: 3
   type: match
   description: "Internationale Nummer: **+43**, Leerzeichen, Vorwahl **1–4 Ziffern** (ohne führende 0), Leerzeichen, Rufnummer **4–10 Ziffern**."
-  match: ["+43 1 5880150", "+43 664 1234567"]
+  match: ["+43 1 0000000", "+43 664 1234567"]
   nomatch: ["0664 1234567", "+43 0664 1234567", "+49 30 123456"]
-  hidden_match: ["+43 316 87150", "+43 5574 4011", "+43 1 1234"]
-  hidden_nomatch: ["+43 12345 123456", "+43 1 123", "+43 664 12345678901", "+431 5880150", "+43  1 5880150"]
+  hidden_match: ["+43 316 000000", "+43 5574 0000", "+43 1 1234"]
+  hidden_nomatch: ["+43 12345 123456", "+43 1 123", "+43 664 12345678901", "+431 0000000", "+43  1 0000000"]
   solution: '\+43 [1-9]\d{0,3} \d{4,10}'
