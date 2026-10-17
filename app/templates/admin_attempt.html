@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ a.student_name }} – {{ sess.name }}{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{{ url_for('admin') }}">Lehrerbereich</a> › <a href="{{ url_for('admin_session', sid=sess.id) }}">{{ sess.name }}</a> › {{ a.student_name }}</div>
+<div class="head-row">
+  <h1>{{ a.student_name }} <small class="muted">{{ a.klasse }}</small></h1>
+  {% if pct is not none %}<div class="score-big">{{ a.score|pts }} / {{ a.max_score|pts }} P. · {{ '%.0f'|format(pct) }} % · Note {{ grade }}</div>{% endif %}
+</div>
+<p class="muted">Begonnen {{ a.started_at|time }} · Abgegeben {{ a.submitted_at|time }} · IP {{ a.ip or '–' }}</p>
+
+{% for it in items %}{% set t = it.t %}{% set ev = it.ev %}
+<section class="card">
+  <div class="ex-title"><h3>{{ loop.index }}. {{ t.title }}</h3>
+    <span class="pill {% if it.pts >= t.points|default(1) %}ok{% elif it.pts == 0 %}bad{% endif %}">{{ it.pts|pts }} / {{ t.points|default(1)|pts }} P. · {{ ev.passed }}/{{ ev.total }} Fälle</span></div>
+  <p>Antwort: {% if it.answer %}<code class="answer">{{ it.answer }}</code>{% else %}<span class="muted">(leer)</span>{% endif %}</p>
+  <p class="muted small">Musterlösung: <code>{{ t.solution }}</code></p>
+  {% if ev.error %}<div class="error">{{ ev.error }}</div>{% endif %}
+  {% if ev.results %}
+  <table class="tbl small">
+    <tr><th></th><th>Text</th><th>erwartet</th><th>erhalten</th><th></th></tr>
+    {% for r in ev.results %}
+    <tr class="{{ 'okrow' if r.ok else 'badrow' }}">
+      <td>{{ '✓' if r.ok else '✗' }}</td>
+      <td><code class="ws">{{ r.text if r.text != '' else '(leer)' }}</code></td>
+      {% if r.kind == 'match' %}
+        <td>{{ 'passt' if r.expect else 'passt nicht' }}</td><td>{{ 'passt' if r.got else ('–' if r.got is none else 'passt nicht') }}</td>
+      {% else %}
+        <td><code>{{ r.expected }}</code></td><td><code>{{ r.got }}</code></td>
+      {% endif %}
+      <td class="muted">{{ 'versteckt' if r.hidden else 'sichtbar' }}{% if r.note %} · {{ r.note }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ sess.name }} – Lehrerbereich{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="30" id="autorefresh">{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{{ url_for('admin') }}">Lehrerbereich</a> › {{ sess.name }}</div>
+<div class="head-row">
+  <h1>{{ sess.name }}</h1>
+  <div class="row">
+    <a class="btn" href="{{ url_for('admin_session_csv', sid=sess.id) }}">CSV-Export</a>
+  </div>
+</div>
+
+<div class="grid3">
+  <div class="card center">
+    <div class="muted">Test-Code</div>
+    <div class="code-huge">{{ sess.code }}</div>
+    <div class="muted small">{{ join_url }}</div>
+  </div>
+  <div class="card">
+    <p>Dauer: <b>{{ sess.duration_min }} min</b> pro Schüler (ab Start)</p>
+    <form method="post" action="{{ url_for('admin_session_toggle', sid=sess.id) }}" class="inline">
+      <input type="hidden" name="field" value="active">
+      Status: {% if sess.active %}<span class="pill ok">freigeschaltet</span>{% else %}<span class="pill">gesperrt</span>{% endif %}
+      <button class="btn small">{{ 'sperren' if sess.active else 'freischalten' }}</button>
+    </form>
+    <form method="post" action="{{ url_for('admin_session_toggle', sid=sess.id) }}" class="inline">
+      <input type="hidden" name="field" value="show_results">
+      Ergebnis für Schüler: <b>{{ 'sichtbar' if sess.show_results else 'verborgen' }}</b>
+      <button class="btn small">umschalten</button>
+    </form>
+  </div>
+  <div class="card">
+    <form method="post" action="{{ url_for('admin_session_close', sid=sess.id) }}"
+          onsubmit="return confirm('Alle laufenden Versuche jetzt abgeben und den Test sperren?')">
+      <button class="btn warn">Test beenden (alle abgeben)</button>
+    </form>
+    <form method="post" action="{{ url_for('admin_session_delete', sid=sess.id) }}"
+          onsubmit="return confirm('Test inkl. aller Ergebnisse endgültig löschen?')">
+      <button class="btn danger">Test löschen</button>
+    </form>
+    <p class="muted small">Seite aktualisiert sich alle 30 s.</p>
+  </div>
+</div>
+
+{% if stats %}
+<section class="card">
+  <h2>Überblick</h2>
+  <p>Durchschnitt: <b>{{ '%.1f'|format(stats.avg) }} %</b></p>
+  <div class="grade-bars">
+    {% set maxg = stats.grades.values()|max %}
+    {% for n in range(1, 6) %}
+    <div class="gb"><div class="bar" style="height: {{ (stats.grades[n] / (maxg or 1) * 100)|round }}%"></div>
+      <div class="gl">{{ n }}<br><small>{{ stats.grades[n] }}×</small></div></div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="card scroll-x">
+  <h2>Ergebnisse ({{ rows|length }})</h2>
+  {% if rows %}
+  <table class="tbl results">
+    <tr>
+      <th>Klasse</th><th>Name</th><th>Status</th>
+      {% for t in tasks %}<th title="{{ t.title }}">{{ loop.index }}<br><small>{{ t.points|default(1)|pts }}P</small></th>{% endfor %}
+      <th>Punkte</th><th>%</th><th>Note</th><th></th>
+    </tr>
+    {% for r in rows %}{% set a = r.a %}
+    <tr>
+      <td>{{ a.klasse }}</td>
+      <td><a href="{{ url_for('admin_attempt', aid=a.id) }}">{{ a.student_name }}</a></td>
+      <td>{% if a.submitted_at %}<span class="pill ok">abgegeben</span>
+          {% else %}<span class="pill run">läuft · {{ (r.remaining // 60) if r.remaining > 0 else 0 }} min · {{ r.answered }}/{{ tasks|length }}</span>{% endif %}</td>
+      {% for t in tasks %}{% set d = r.det.get(t.id) %}
+        <td class="num {% if d %}{% if d.points >= d.max %}full{% elif d.points == 0 %}zero{% else %}part{% endif %}{% endif %}">{{ d.points|pts if d else '' }}</td>
+      {% endfor %}
+      <td class="num">{{ a.score|pts if a.submitted_at else '' }}</td>
+      <td class="num">{{ '%.0f'|format(r.pct) if r.pct is not none else '' }}</td>
+      <td class="num"><b>{{ r.grade or '' }}</b></td>
+      <td class="nowrap">
+        {% if not a.submitted_at %}
+        <form method="post" action="{{ url_for('admin_attempt_extend', aid=a.id) }}" class="inline">
+          <input type="hidden" name="minutes" value="5"><button class="btn small" title="5 Minuten mehr Zeit">+5 min</button></form>
+        {% endif %}
+        <form method="post" action="{{ url_for('admin_attempt_reset', aid=a.id) }}" class="inline"
+              onsubmit="return confirm('Versuch von {{ a.student_name }} löschen? Der Schüler kann dann neu beginnen.')">
+          <button class="btn small ghost">löschen</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+    {% if stats %}
+    <tr class="avg"><td colspan="3">Ø Punkte</td>
+      {% for t in tasks %}<td class="num">{{ '%.1f'|format(stats.task_avg[t.id]) }}</td>{% endfor %}
+      <td colspan="4"></td></tr>
+    {% endif %}
+  </table>
+  {% else %}<p class="muted">Noch niemand hat den Test gestartet.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>Aufgaben in diesem Test</h2>
+  <ol>{% for t in tasks %}<li><b>{{ t.title }}</b> ({{ t.points|default(1)|pts }} P.) – <code>{{ t.solution }}</code></li>{% endfor %}</ol>
+</section>
+{% endblock %}

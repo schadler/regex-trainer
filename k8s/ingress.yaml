@@ -1,0 +1,20 @@
+# k3s bringt Traefik als Ingress-Controller mit.
+# Hostname anpassen (DNS-Eintrag oder /etc/hosts auf die Node-IP zeigen lassen).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: regex-trainer
+  namespace: regex-trainer
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: regex.schule.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: regex-trainer
+                port:
+                  name: http

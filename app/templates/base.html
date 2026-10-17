@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Regex-Trainer{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232457d6'/><text x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='monospace'>.*</text></svg>">
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="{{ url_for('index') }}"><span class="logo">.*</span> Regex-Trainer</a>
+  {% if not hide_nav %}
+  <nav>
+    <a href="{{ url_for('index') }}">Lernen</a>
+    <a href="{{ url_for('playground') }}">Spielwiese</a>
+    <a href="{{ url_for('cheatsheet') }}">Spickzettel</a>
+    <a href="{{ url_for('test_join') }}" class="nav-test">Test</a>
+    {% if session.is_admin %}<a href="{{ url_for('admin') }}">Lehrer</a>{% endif %}
+  </nav>
+  {% endif %}
+</header>
+<main class="{% block mainclass %}{% endblock %}">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

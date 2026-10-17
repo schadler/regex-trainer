@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% set hide_nav = True %}
+{% block title %}Test abgegeben{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="card center">
+  <h1>Test abgegeben ✓</h1>
+  <p>{{ attempt.student_name }} ({{ attempt.klasse }}) – abgegeben am {{ attempt.submitted_at|time }}</p>
+  {% if sess.show_results %}
+    <div class="score-big">{{ attempt.score|pts }} / {{ attempt.max_score|pts }} Punkte</div>
+    <p>{{ '%.0f'|format(pct) }} % · Note {{ grade }} ({{ grade_names[grade] }})</p>
+    <table class="tbl">
+      <tr><th>Aufgabe</th><th>Fälle</th><th>Punkte</th></tr>
+      {% for t in tasks %}{% set d = details.get(t.id, {}) %}
+      <tr><td>{{ t.title }}</td><td>{{ d.passed }}/{{ d.total }}</td><td>{{ d.points|pts }} / {{ d.max|pts }}</td></tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">Deine Lehrkraft gibt die Ergebnisse später bekannt.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('test_logout') }}"><button class="btn">Abmelden</button></form>
+</div>
+{% endblock %}

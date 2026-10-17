@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Reguläre Ausdrücke lernen</h1>
+  <p>Arbeite die Lektionen der Reihe nach durch. Jede Lektion erklärt ein Konzept und hat Übungen,
+     die sofort überprüft werden. Probiere eigene Muster auf der <a href="{{ url_for('playground') }}">Spielwiese</a> aus.</p>
+  <div class="progress-wrap"><div class="progress"><div id="progress-bar"></div></div><span id="progress-text"></span></div>
+</section>
+
+<ol class="lesson-list">
+{% for l in lessons %}
+  <li>
+    <a href="{{ url_for('lesson', lid=l.id) }}">
+      <span class="nr">{{ loop.index }}</span>
+      <span class="ttl">{{ l.title }}</span>
+      <span class="badge" data-lesson="{{ l.id }}" data-ex="{{ l.exercises|map(attribute='id')|join(',') }}"></span>
+    </a>
+  </li>
+{% endfor %}
+</ol>
+
+<section class="card test-teaser">
+  <h2>Test</h2>
+  <p>Deine Lehrkraft gibt dir einen <b>Test-Code</b>. Damit kannst du den Test starten.</p>
+  <a class="btn primary" href="{{ url_for('test_join') }}">Zum Test</a>
+</section>
+{% endblock %}
+{% block scripts %}<script>Progress.renderIndex();</script>{% endblock %}

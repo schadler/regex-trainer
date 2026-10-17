@@ -1,0 +1,132 @@
+# Aufgabenpool für Tests (BEISPIEL).
+#
+# Die echte Datei NICHT ins öffentliche Git-Repo legen, sondern als ConfigMap
+# in den Cluster laden (siehe README) – sonst können Schüler die Lösungen lesen.
+#
+# Felder:
+#   id, title, description, type (match|findall), points
+#   match / nomatch            -> sichtbare Beispiele (Schüler können damit testen)
+#   hidden_match / hidden_nomatch -> versteckte Prüffälle (nur für die Bewertung)
+#   findall: text + expected (sichtbar), hidden: [{text, expected}] (versteckt)
+#   group: 1 | name            -> bei findall nur diese Gruppe vergleichen
+#   all_or_nothing: true       -> Punkte nur, wenn ALLE Fälle stimmen
+#   solution                   -> Musterlösung (nur im Lehrerbereich sichtbar)
+# Bewertung: Punkte × (bestandene Fälle / alle Fälle), auf halbe Punkte abgerundet.
+
+- id: t01
+  title: "Klassenbezeichnung"
+  points: 2
+  type: match
+  description: "Eine Klassenbezeichnung besteht aus Jahrgang **1–5**, Parallelklasse **A–E**, dann **H** und der Abteilung **IT**, **ET** oder **WI** (z.B. 3AHIT)."
+  match: ["3AHIT", "1BHET", "5EHWI"]
+  nomatch: ["6AHIT", "3FHIT", "3AHXX"]
+  hidden_match: ["2CHIT", "4DHET", "1AHWI"]
+  hidden_nomatch: ["3AIT", "3aHIT", "0AHIT", "3AHITT", "33AHIT"]
+  solution: '[1-5][A-E]H(IT|ET|WI)'
+
+- id: t02
+  title: "Uhrzeit 24h"
+  points: 3
+  type: match
+  description: "Eine gültige Uhrzeit **hh:mm** von **00:00** bis **23:59**."
+  match: ["00:00", "09:30", "23:59"]
+  nomatch: ["24:00", "9:30", "12:60"]
+  hidden_match: ["19:05", "20:00", "13:47", "10:10"]
+  hidden_nomatch: ["25:10", "12:5", "1230", "29:00", "12:99", "ab:cd"]
+  solution: '([01]\d|2[0-3]):[0-5]\d'
+
+- id: t03
+  title: "Hex-Farbcode"
+  points: 2
+  type: match
+  description: "Ein CSS-Farbcode: **#** gefolgt von **3 oder 6** Hex-Ziffern (z.B. #fff, #1A2B3C)."
+  match: ["#fff", "#1A2B3C", "#000"]
+  nomatch: ["fff", "#ffff", "#GGG"]
+  hidden_match: ["#abc", "#ABCDEF", "#09f", "#a1b2c3"]
+  hidden_nomatch: ["#ab", "#abcdefa", "#12345", "##fff", "#ffg"]
+  solution: '#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})'
+
+- id: t04
+  title: "Datum TT.MM.JJJJ"
+  points: 3
+  type: match
+  description: "Ein Datum **TT.MM.JJJJ** mit Tag **01–31** und Monat **01–12** (Monatslängen müssen nicht geprüft werden)."
+  match: ["01.01.2026", "31.12.1999", "15.06.2010"]
+  nomatch: ["32.01.2026", "01.13.2026", "1.1.2026"]
+  hidden_match: ["10.10.2010", "29.02.2024", "30.11.2000", "09.09.1900"]
+  hidden_nomatch: ["00.05.2026", "15.00.2026", "15-06-2010", "15.06.10", "40.10.2010", "15.06.20100"]
+  solution: '(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.\d{4}'
+
+- id: t05
+  title: "Preise finden"
+  points: 2
+  type: findall
+  description: "Finde alle Preise der Form **€ 12,50** (Euro-Zeichen, Leerzeichen, Zahl, Komma, genau zwei Nachkommastellen)."
+  text: "Brot € 2,49, Milch € 1,19 und Käse € 12,90."
+  expected: ["€ 2,49", "€ 1,19", "€ 12,90"]
+  hidden:
+    - text: "Gesamt: € 103,00 (statt € 120,5 oder 99,00 €)"
+      expected: ["€ 103,00"]
+    - text: "€ 0,99 + € 5,50 = € 6,49"
+      expected: ["€ 0,99", "€ 5,50", "€ 6,49"]
+  solution: '€ \d+,\d{2}\b'
+
+- id: t06
+  title: "HTML-Tags entfernen"
+  points: 2
+  type: findall
+  description: "Finde jedes HTML-Tag einzeln (öffnend und schließend)."
+  text: "<p>Hallo <b>Welt</b></p>"
+  expected: ["<p>", "<b>", "</b>", "</p>"]
+  hidden:
+    - text: '<a href="x.html">Link</a> und <br>'
+      expected: ['<a href="x.html">', "</a>", "<br>"]
+  solution: '<[^>]+>'
+
+- id: t07
+  title: "Domain aus E-Mail"
+  points: 2
+  type: findall
+  group: 1
+  description: "Liefere in **Gruppe 1** die Domain (alles nach dem @) jeder E-Mail-Adresse."
+  text: "max@htl.at, anna@schule.ac.at"
+  expected: ["htl.at", "schule.ac.at"]
+  hidden:
+    - text: "Mail an info@firma-x.com oder chef@it.firma-x.com!"
+      expected: ["firma-x.com", "it.firma-x.com"]
+  solution: '[\w.+-]+@([\w-]+(?:\.[\w-]+)+)'
+
+- id: t08
+  title: "Sicheres Passwort"
+  points: 3
+  type: match
+  description: "Mindestens **10 Zeichen**, mindestens ein **Kleinbuchstabe**, ein **Großbuchstabe**, eine **Ziffer** und **keine Leerzeichen**."
+  match: ["Sicher2026x", "aB3defghij"]
+  nomatch: ["sicher2026x", "Sicher 2026x", "Kurz1a"]
+  hidden_match: ["XyZ1234567a", "Abcdefghi9", "HTLwien2026"]
+  hidden_nomatch: ["ABCDEFGHI9", "abcdefghij", "Abcdefghij", "Abc 1234567", "Ab1"]
+  solution: '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)\S{10,}'
+
+- id: t09
+  title: "Ports aus der Konfiguration"
+  points: 2
+  type: findall
+  group: port
+  description: "Liefere in der benannten Gruppe **port** die Portnummer jeder Zeile der Form **port=ZAHL** (nur am Zeilenanfang!)."
+  text: "port=80\nhost=web\nport=443\n# port=8080"
+  expected: ["80", "443"]
+  hidden:
+    - text: "port=22\n  port=23\nport=3306\nsport=1"
+      expected: ["22", "3306"]
+  solution: '(?m)^port=(?P<port>\d+)'
+
+- id: t10
+  title: "Österr. Telefonnummer"
+  points: 3
+  type: match
+  description: "Internationale Nummer: **+43**, Leerzeichen, Vorwahl **1–4 Ziffern** (ohne führende 0), Leerzeichen, Rufnummer **4–10 Ziffern**."
+  match: ["+43 1 5880150", "+43 664 1234567"]
+  nomatch: ["0664 1234567", "+43 0664 1234567", "+49 30 123456"]
+  hidden_match: ["+43 316 87150", "+43 5574 4011", "+43 1 1234"]
+  hidden_nomatch: ["+43 12345 123456", "+43 1 123", "+43 664 12345678901", "+431 5880150", "+43  1 5880150"]
+  solution: '\+43 [1-9]\d{0,3} \d{4,10}'

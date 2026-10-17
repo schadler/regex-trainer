@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Lehrerbereich – Regex-Trainer{% endblock %}
+{% block content %}
+<div class="head-row">
+  <h1>Lehrerbereich</h1>
+  <div class="row">
+    <a class="btn" href="{{ url_for('admin_tasks') }}">Aufgabenpool prüfen</a>
+    <form method="post" action="{{ url_for('admin_logout') }}"><button class="btn ghost">Abmelden</button></form>
+  </div>
+</div>
+
+{% if using_example %}
+<div class="flash warn">Es wird der <b>Beispiel-Aufgabenpool</b> verwendet. Für echte Tests eigene Aufgaben als ConfigMap einbinden (siehe README) – die Beispielaufgaben sind öffentlich im Repository sichtbar.</div>
+{% endif %}
+
+<section class="card">
+  <h2>Tests</h2>
+  {% if sessions %}
+  <table class="tbl">
+    <tr><th>Name</th><th>Code</th><th>Dauer</th><th>Status</th><th>Teilnehmer</th><th>Erstellt</th></tr>
+    {% for s in sessions %}
+    <tr>
+      <td><a href="{{ url_for('admin_session', sid=s.id) }}">{{ s.name }}</a></td>
+      <td><code class="code-big">{{ s.code }}</code></td>
+      <td>{{ s.duration_min }} min</td>
+      <td>{% if s.active %}<span class="pill ok">freigeschaltet</span>{% else %}<span class="pill">gesperrt</span>{% endif %}</td>
+      <td>{{ s.n_done or 0 }} / {{ s.n }} abgegeben</td>
+      <td>{{ s.created_at|time }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Noch keine Tests angelegt.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>Neuen Test anlegen</h2>
+  <form method="post" action="{{ url_for('admin_session_new') }}" class="form">
+    <div class="grid3">
+      <label>Bezeichnung <input name="name" placeholder="z.B. Regex-Test 3AHIT" required></label>
+      <label>Dauer (Minuten) <input name="duration" type="number" min="1" max="600" value="45"></label>
+      <label>Code (leer = zufällig) <input name="code" class="mono upper" maxlength="20"></label>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" name="active" checked> sofort freischalten</label>
+      <label class="chk"><input type="checkbox" name="show_results"> Ergebnis nach Abgabe anzeigen</label>
+    </div>
+    <h3>Aufgaben <small class="muted">({{ pool|length }} im Pool · {{ pool_file }})</small></h3>
+    <div class="row"><button type="button" class="btn ghost small" onclick="document.querySelectorAll('.taskpick input').forEach(c=>c.checked=true)">alle</button>
+      <button type="button" class="btn ghost small" onclick="document.querySelectorAll('.taskpick input').forEach(c=>c.checked=false)">keine</button></div>
+    <div class="taskpick">
+      {% for t in pool %}
+      <label class="chk"><input type="checkbox" name="tasks" value="{{ t.id }}" checked>
+        <span><b>{{ t.id }}</b> {{ t.title }} <span class="pill">{{ t.points|default(1)|pts }} P.</span> <span class="muted">{{ t.type }}</span></span></label>
+      {% endfor %}
+    </div>
+    <button class="btn primary">Test anlegen</button>
+  </form>
+</section>
+{% endblock %}

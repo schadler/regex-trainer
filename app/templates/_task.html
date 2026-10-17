@@ -1,0 +1,30 @@
+{# Gemeinsame Darstellung einer Aufgabe (Lernmodus und Test) #}
+{% macro task_cases(t) %}
+  {% if t.type == 'match' %}
+    <p class="hint">Das <b>ganze</b> Wort muss passen (<code>re.fullmatch</code>).</p>
+    <div class="cases">
+      <div class="caselist good">
+        <h4>soll passen</h4>
+        {% for s in t.match %}<code class="case" data-case="m{{ loop.index0 }}">{{ s if s != '' else '(leer)' }}</code>{% endfor %}
+      </div>
+      <div class="caselist bad">
+        <h4>soll nicht passen</h4>
+        {% for s in t.nomatch %}<code class="case" data-case="n{{ loop.index0 }}">{{ s if s != '' else '(leer)' }}</code>{% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <p class="hint">Alle Treffer im Text {% if t.group is defined and t.group is not none %}(nur <b>Gruppe {{ t.group }}</b>){% endif %} müssen genau dem Ergebnis entsprechen (<code>re.finditer</code>).</p>
+    <div class="findall">
+      <h4>Text</h4>
+      <pre class="text-sample">{{ t.text }}</pre>
+      <h4>Erwartetes Ergebnis</h4>
+      <div>{% for e in t.expected %}<code class="case">{{ e }}</code>{% endfor %}</div>
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro pattern_input(name, value='', id='') %}
+<div class="pattern-input">
+  <span class="pfx">r"</span><input type="text" name="{{ name }}" id="{{ id }}" value="{{ value }}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dein Muster"><span class="sfx">"</span>
+</div>
+{% endmacro %}

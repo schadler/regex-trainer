@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_task.html" import task_cases, pattern_input %}
+{% set hide_nav = True %}
+{% block title %}{{ sess.name }} – Test{% endblock %}
+{% block content %}
+<div class="test-bar">
+  <div><b>{{ sess.name }}</b><br><span class="muted">{{ attempt.student_name }} · {{ attempt.klasse }}</span></div>
+  <div class="timer" id="timer" data-remaining="{{ remaining }}">--:--</div>
+  <div class="save-state muted" id="save-state">gespeichert</div>
+</div>
+
+<p class="muted">Du kannst deine Muster mit <b>Testen</b> an den sichtbaren Beispielen ausprobieren.
+Bewertet wird zusätzlich mit <b>weiteren, versteckten Beispielen</b> – denk also an Grenzfälle!
+Deine Antworten werden automatisch gespeichert.</p>
+
+<form method="post" action="{{ url_for('test_submit') }}" id="test-form">
+{% for t in tasks %}
+<section class="card exercise test-task" data-id="{{ t.id }}">
+  <div class="ex-title"><h3>Aufgabe {{ loop.index }}: {{ t.title }}</h3><span class="pill">{{ t.points|pts }} P.</span></div>
+  <div class="desc">{{ t.description|md }}</div>
+  {{ task_cases(t) }}
+  {{ pattern_input('a_' ~ t.id, answers.get(t.id, '')) }}
+  <div class="row"><button class="btn" type="button" onclick="TestRun.tryTask(this)">Testen</button></div>
+  <div class="result" aria-live="polite"></div>
+</section>
+{% endfor %}
+<div class="submit-row">
+  <button class="btn primary big" type="submit" onclick="return confirm('Test wirklich abgeben? Danach kannst du nichts mehr ändern.');">Test abgeben</button>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}<script>TestRun.init();</script>{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Spickzettel – Regex-Trainer{% endblock %}
+{% block content %}
+<h1>Spickzettel</h1>
+<div class="cheat">
+  <section class="card"><h3>Zeichen</h3><table>
+    <tr><td><code>.</code></td><td>beliebiges Zeichen (außer \n)</td></tr>
+    <tr><td><code>\.</code></td><td>echter Punkt (Escape)</td></tr>
+    <tr><td><code>\d</code> / <code>\D</code></td><td>Ziffer / keine Ziffer</td></tr>
+    <tr><td><code>\w</code> / <code>\W</code></td><td>Wortzeichen / kein Wortzeichen</td></tr>
+    <tr><td><code>\s</code> / <code>\S</code></td><td>Whitespace / kein Whitespace</td></tr>
+    <tr><td><code>\t \n</code></td><td>Tabulator, Zeilenumbruch</td></tr>
+  </table></section>
+  <section class="card"><h3>Zeichenklassen</h3><table>
+    <tr><td><code>[abc]</code></td><td>a, b oder c</td></tr>
+    <tr><td><code>[a-z]</code></td><td>Bereich a bis z</td></tr>
+    <tr><td><code>[^abc]</code></td><td>alles außer a, b, c</td></tr>
+    <tr><td><code>[-+.]</code></td><td>Minus, Plus oder Punkt</td></tr>
+  </table></section>
+  <section class="card"><h3>Quantoren</h3><table>
+    <tr><td><code>*</code></td><td>0 oder mehr</td></tr>
+    <tr><td><code>+</code></td><td>1 oder mehr</td></tr>
+    <tr><td><code>?</code></td><td>0 oder 1</td></tr>
+    <tr><td><code>{n}</code></td><td>genau n</td></tr>
+    <tr><td><code>{n,m}</code></td><td>n bis m</td></tr>
+    <tr><td><code>*? +? ??</code></td><td>genügsam (lazy)</td></tr>
+  </table></section>
+  <section class="card"><h3>Anker</h3><table>
+    <tr><td><code>^</code></td><td>Anfang (Zeile mit re.M)</td></tr>
+    <tr><td><code>$</code></td><td>Ende (Zeile mit re.M)</td></tr>
+    <tr><td><code>\b</code></td><td>Wortgrenze</td></tr>
+    <tr><td><code>\B</code></td><td>keine Wortgrenze</td></tr>
+    <tr><td><code>\A \Z</code></td><td>Textanfang / Textende</td></tr>
+  </table></section>
+  <section class="card"><h3>Gruppen</h3><table>
+    <tr><td><code>(…)</code></td><td>Gruppe (merkt sich Treffer)</td></tr>
+    <tr><td><code>(?:…)</code></td><td>Gruppe ohne Merken</td></tr>
+    <tr><td><code>(?P&lt;name&gt;…)</code></td><td>benannte Gruppe</td></tr>
+    <tr><td><code>a|b</code></td><td>a oder b</td></tr>
+    <tr><td><code>\1</code></td><td>Rückverweis auf Gruppe 1</td></tr>
+    <tr><td><code>(?P=name)</code></td><td>Rückverweis auf benannte Gruppe</td></tr>
+  </table></section>
+  <section class="card"><h3>Lookarounds</h3><table>
+    <tr><td><code>(?=…)</code></td><td>danach folgt …</td></tr>
+    <tr><td><code>(?!…)</code></td><td>danach folgt nicht …</td></tr>
+    <tr><td><code>(?&lt;=…)</code></td><td>davor steht …</td></tr>
+    <tr><td><code>(?&lt;!…)</code></td><td>davor steht nicht …</td></tr>
+  </table></section>
+  <section class="card"><h3>Flags</h3><table>
+    <tr><td><code>(?i)</code> re.I</td><td>Groß/klein egal</td></tr>
+    <tr><td><code>(?m)</code> re.M</td><td>^ $ pro Zeile</td></tr>
+    <tr><td><code>(?s)</code> re.S</td><td>. passt auch auf \n</td></tr>
+    <tr><td><code>(?x)</code> re.X</td><td>Leerzeichen/Kommentare erlaubt</td></tr>
+  </table></section>
+  <section class="card wide"><h3>Python <code>re</code></h3>
+<pre>import re
+re.search(r"\d+", s)        # erster Treffer irgendwo  -> Match oder None
+re.match(r"\d+", s)         # Treffer am Anfang
+re.fullmatch(r"\d+", s)     # ganzer String muss passen
+re.findall(r"\d+", s)       # Liste aller Treffer (bei Gruppen: Gruppeninhalte!)
+re.finditer(r"\d+", s)      # Iterator über Match-Objekte
+re.sub(r"\s+", " ", s)      # ersetzen
+re.split(r"[,;]\s*", s)     # aufteilen
+m.group(0), m.group(1), m.group("name"), m.span()</pre>
+  </section>
+</div>
+{% endblock %}

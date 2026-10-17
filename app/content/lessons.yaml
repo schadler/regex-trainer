@@ -1,0 +1,408 @@
+# Lektionen für den Lernmodus.
+# Aufgabentypen:
+#   match   -> das GANZE Wort muss passen (wie re.fullmatch); Listen `match` / `nomatch`
+#   findall -> alle Treffer im `text` müssen genau `expected` ergeben (wie re.finditer)
+#              optional `group: 1` oder `group: name` -> es zählt nur diese Gruppe
+# `solution` ist eine Musterlösung (Button „Lösung zeigen“).
+
+- id: l01
+  title: "Literale & der Punkt"
+  text: |
+    Ein regulärer Ausdruck (*Regex*) ist ein **Suchmuster** für Text.
+    Die einfachsten Muster bestehen aus ganz normalen Zeichen – sie passen genau auf sich selbst:
+
+    | Muster | passt auf |
+    |---|---|
+    | `HTL` | „HTL“ |
+    | `abc` | „abc“, nicht aber „ABC“ |
+
+    Der **Punkt** `.` ist ein *Metazeichen*: Er steht für **ein beliebiges Zeichen**
+    (außer Zeilenumbruch). `h.t` passt also auf „hat“, „hut“, „h7t“ …
+
+    Willst du einen *echten* Punkt suchen, musst du ihn mit einem Backslash **escapen**: `\.`
+    Das gilt für alle Metazeichen: `. ^ $ * + ? { } [ ] \ | ( )`
+
+    ```python
+    import re
+    re.findall(r"HTL", "Die HTL Wien")      # ['HTL']
+    re.fullmatch(r"h.t", "hut")             # <re.Match ...>
+    ```
+
+    > Tipp: In Python schreibt man Regex immer als **Raw-String** `r"..."`, damit Backslashes nicht verschluckt werden.
+  exercises:
+    - id: l01e1
+      type: findall
+      title: "Finde alle „HTL“"
+      description: "Finde jedes Vorkommen von **HTL** im Text."
+      text: "Die HTL Wien und die HTL Graz sind beide HTLs."
+      expected: ["HTL", "HTL", "HTL"]
+      solution: 'HTL'
+    - id: l01e2
+      type: match
+      title: "h?t"
+      description: "Passe auf jedes 3-Zeichen-Wort, das mit **h** beginnt und mit **t** endet."
+      match: ["hat", "hut", "hit", "h7t"]
+      nomatch: ["heat", "ht", "Hut", "hats"]
+      solution: 'h.t'
+    - id: l01e3
+      type: match
+      title: "Echter Punkt"
+      description: "Passe genau auf **a.b** – aber nicht auf „axb“."
+      match: ["a.b"]
+      nomatch: ["axb", "a-b", "ab"]
+      solution: 'a\.b'
+
+- id: l02
+  title: "Zeichenklassen [ ]"
+  text: |
+    Mit eckigen Klammern legst du fest, **welche Zeichen an einer Stelle erlaubt** sind.
+    Eine Zeichenklasse passt immer auf **genau ein** Zeichen.
+
+    | Muster | Bedeutung |
+    |---|---|
+    | `[aeiou]` | ein Vokal |
+    | `[0-9]` | eine Ziffer (Bereich von 0 bis 9) |
+    | `[a-zA-Z]` | ein Buchstabe (klein oder groß) |
+    | `[^0-9]` | **kein** Ziffernzeichen – `^` am Anfang **negiert** die Klasse |
+
+    Beispiel: `M[ae]ier` passt auf „Maier“ und „Meier“.
+
+    Innerhalb von `[ ]` verlieren die meisten Metazeichen ihre Bedeutung:
+    `[.]` ist ein echter Punkt. Ein Bindestrich als Zeichen steht am besten ganz am Anfang oder Ende: `[-+]`.
+  exercises:
+    - id: l02e1
+      type: match
+      title: "Meier, Maier, Meyer, Mayer"
+      description: "Passe auf alle vier Schreibweisen des Namens."
+      match: ["Meier", "Maier", "Meyer", "Mayer"]
+      nomatch: ["Mauer", "Moier", "Meiier", "meier"]
+      solution: 'M[ae][iy]er'
+    - id: l02e2
+      type: match
+      title: "Eine Hex-Ziffer"
+      description: "Passe auf **eine** hexadezimale Ziffer (0–9, a–f, A–F)."
+      match: ["a", "F", "7", "0"]
+      nomatch: ["g", "Z", "-", "1a"]
+      solution: '[0-9a-fA-F]'
+    - id: l02e3
+      type: match
+      title: "Kein Vokal"
+      description: "Passe auf ein einzelnes Zeichen, das **kein** Vokal (a, e, i, o, u – groß oder klein) ist."
+      match: ["b", "x", "7", "Z"]
+      nomatch: ["a", "e", "U", "bb"]
+      solution: '[^aeiouAEIOU]'
+
+- id: l03
+  title: "Vordefinierte Klassen \\d \\w \\s"
+  text: |
+    Für häufig benötigte Zeichenklassen gibt es Abkürzungen:
+
+    | Kürzel | entspricht | Gegenteil |
+    |---|---|---|
+    | `\d` | Ziffer `[0-9]` | `\D` |
+    | `\w` | Wortzeichen `[a-zA-Z0-9_]` (+ Umlaute in Python 3) | `\W` |
+    | `\s` | Whitespace (Leerzeichen, Tab, Zeilenumbruch) | `\S` |
+
+    Beispiel: `\d\d:\d\d` passt auf eine Uhrzeit wie „08:15“.
+
+    > Achtung: In Python passt `\w` auch auf **ä, ö, ü, ß** und `\d` auf andere Unicode-Ziffern.
+  exercises:
+    - id: l03e1
+      type: match
+      title: "Drei Ziffern"
+      description: "Passe auf genau **drei Ziffern**."
+      match: ["123", "007", "999"]
+      nomatch: ["12", "12a", "1234", "abc"]
+      solution: '\d\d\d'
+    - id: l03e2
+      type: findall
+      title: "Raumnummern"
+      description: "Finde alle **dreistelligen** Raumnummern im Text."
+      text: "Die 3AHIT hat Raum 101, die 3BHIT Raum 204."
+      expected: ["101", "204"]
+      solution: '\d\d\d'
+    - id: l03e3
+      type: match
+      title: "Uhrzeit hh:mm"
+      description: "Passe auf eine Uhrzeit im Format **hh:mm** (zweistellig, ohne Prüfung des Wertebereichs)."
+      match: ["08:15", "23:59", "00:00"]
+      nomatch: ["8:15", "08-15", "0815", "08:5"]
+      solution: '\d\d:\d\d'
+
+- id: l04
+  title: "Quantoren * + ? {n,m}"
+  text: |
+    Quantoren geben an, **wie oft** das Zeichen (oder die Gruppe) **davor** vorkommen darf:
+
+    | Quantor | Bedeutung |
+    |---|---|
+    | `*` | 0-mal oder öfter |
+    | `+` | 1-mal oder öfter |
+    | `?` | 0- oder 1-mal (optional) |
+    | `{3}` | genau 3-mal |
+    | `{2,4}` | 2- bis 4-mal |
+    | `{2,}` | mindestens 2-mal |
+
+    Beispiele:
+
+    - `\d+` – eine oder mehrere Ziffern („7“, „2026“)
+    - `https?` – „http“ oder „https“
+    - `[A-Z]{2,3}` – 2 oder 3 Großbuchstaben
+  exercises:
+    - id: l04e1
+      type: match
+      title: "Österreichische PLZ"
+      description: "Eine österreichische Postleitzahl hat **4 Ziffern** und beginnt **nicht mit 0**."
+      match: ["1010", "8020", "6900", "9999"]
+      nomatch: ["0123", "101", "10100", "1o10"]
+      solution: '[1-9]\d{3}'
+    - id: l04e2
+      type: match
+      title: "http oder https"
+      description: "Passe auf **http://** und **https://**."
+      match: ["http://", "https://"]
+      nomatch: ["htps://", "httpss://", "http:/", "ftp://"]
+      solution: 'https?://'
+    - id: l04e3
+      type: match
+      title: "Ganze Zahl mit Vorzeichen"
+      description: "Eine ganze Zahl mit optionalem **+** oder **-** davor."
+      match: ["0", "42", "-17", "+3", "2026"]
+      nomatch: ["", "--1", "4-2", "+", "3.5"]
+      solution: '[+-]?\d+'
+
+- id: l05
+  title: "Anker ^ $ und Wortgrenzen \\b"
+  text: |
+    Anker passen auf **keine Zeichen**, sondern auf **Positionen**:
+
+    | Anker | Position |
+    |---|---|
+    | `^` | Anfang des Textes (mit Flag `m`: Anfang jeder Zeile) |
+    | `$` | Ende des Textes (mit Flag `m`: Ende jeder Zeile) |
+    | `\b` | Wortgrenze – zwischen einem Wortzeichen und einem Nicht-Wortzeichen |
+
+    `\bJava\b` findet „Java“, aber nicht das „Java“ in „JavaScript“.
+
+    **Flags im Muster:** Mit `(?m)` am Anfang des Musters aktivierst du den Multiline-Modus,
+    mit `(?i)` ignorierst du Groß-/Kleinschreibung.
+
+    > Bei Aufgaben vom Typ „ganzes Wort muss passen“ verwendet der Trainer `re.fullmatch` –
+    > dort sind `^` und `$` also automatisch dabei.
+  exercises:
+    - id: l05e1
+      type: findall
+      title: "Nur das ganze Wort Java"
+      description: "Finde **Java** nur als eigenständiges Wort."
+      text: "Java, JavaScript und Java-Applets sind nicht dasselbe. Java!"
+      expected: ["Java", "Java", "Java"]
+      solution: '\bJava\b'
+    - id: l05e2
+      type: findall
+      title: "Überschriften"
+      description: "Finde alle Zeilen, die mit **#** beginnen – die ganze Zeile soll der Treffer sein. Tipp: `(?m)`"
+      text: "# Titel\nNormaler Text\n# Kapitel 2\nEnde # kein Titel"
+      expected: ["# Titel", "# Kapitel 2"]
+      solution: '(?m)^#.*'
+    - id: l05e3
+      type: findall
+      title: "Wörter mit großem Anfangsbuchstaben"
+      description: "Finde alle Wörter, die mit einem Großbuchstaben (A–Z) beginnen."
+      text: "Heute lernt die Klasse in Wien reguläre Ausdrücke mit Python."
+      expected: ["Heute", "Klasse", "Wien", "Ausdrücke", "Python"]
+      solution: '\b[A-Z]\w*'
+
+- id: l06
+  title: "Gruppen ( ) und Alternation |"
+  text: |
+    **Runde Klammern** fassen Teile zu einer **Gruppe** zusammen. Ein Quantor nach der Gruppe
+    wirkt auf die ganze Gruppe: `(ha)+` passt auf „ha“, „haha“, „hahaha“.
+
+    Der **senkrechte Strich** `|` bedeutet **oder**:
+    `Hund|Katze` passt auf „Hund“ oder „Katze“.
+
+    Kombiniert: `\w+\.(png|jpg)` – ein Dateiname mit Endung png oder jpg.
+
+    > `|` hat die niedrigste Priorität. `^a|b$` bedeutet „(^a) oder (b$)“ – setze im Zweifel Klammern!
+  exercises:
+    - id: l06e1
+      type: match
+      title: "hihihi"
+      description: "Passe auf **hi**, das ein- oder mehrmals wiederholt wird."
+      match: ["hi", "hihi", "hihihi"]
+      nomatch: ["", "hih", "ih", "hii"]
+      solution: '(hi)+'
+    - id: l06e2
+      type: match
+      title: "Wochentage"
+      description: "Passe auf die Abkürzungen **Mo Di Mi Do Fr Sa So**."
+      match: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+      nomatch: ["Mu", "Fa", "Mon", "mo"]
+      solution: 'Mo|Di|Mi|Do|Fr|Sa|So'
+    - id: l06e3
+      type: match
+      title: "Bilddateien"
+      description: "Dateiname aus Wortzeichen mit der Endung **png**, **jpg**, **jpeg** oder **gif**."
+      match: ["bild.png", "foto.jpg", "x.jpeg", "a_1.gif"]
+      nomatch: ["text.txt", "png", "bild.png.exe", ".png"]
+      solution: '\w+\.(png|jpe?g|gif)'
+
+- id: l07
+  title: "Gierig vs. genügsam"
+  text: |
+    Quantoren sind standardmäßig **gierig** (*greedy*): Sie nehmen so viel wie möglich.
+
+    ```text
+    Text:   <b>fett</b>
+    <.+>    findet  <b>fett</b>   (alles!)
+    <.+?>   findet  <b>  und  </b>
+    ```
+
+    Ein `?` **nach** einem Quantor macht ihn **genügsam** (*lazy*): `*?`, `+?`, `??`, `{n,m}?`
+
+    Oft ist eine **negierte Klasse** noch besser und schneller: `<[^>]+>`
+  exercises:
+    - id: l07e1
+      type: findall
+      title: "HTML-Tags"
+      description: "Finde jedes HTML-Tag einzeln."
+      text: "<b>fett</b> und <i>kursiv</i>"
+      expected: ["<b>", "</b>", "<i>", "</i>"]
+      solution: '<.+?>'
+    - id: l07e2
+      type: findall
+      title: "Zitate"
+      description: "Finde jeden Text in Anführungszeichen (inklusive der Anführungszeichen)."
+      text: 'Er sagte "Hallo" und dann "Tschüss".'
+      expected: ['"Hallo"', '"Tschüss"']
+      solution: '".*?"'
+
+- id: l08
+  title: "Gruppen auslesen & Rückverweise"
+  text: |
+    Gruppen merken sich, was sie gefunden haben. In Python:
+
+    ```python
+    m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", "am 24.12.2026")
+    m.group(0)   # '24.12.2026'  (ganzer Treffer)
+    m.group(3)   # '2026'
+    ```
+
+    **Benannte Gruppen:** `(?P<jahr>\d{4})` → `m.group("jahr")`
+
+    **Nicht-merkende Gruppe:** `(?:...)` gruppiert nur, ohne zu speichern.
+
+    **Rückverweis:** `\1` passt auf **denselben Text**, den Gruppe 1 gefunden hat.
+    `\b(\w+) \1\b` findet doppelte Wörter wie „das das“.
+
+    > Bei Aufgaben mit dem Hinweis „Gruppe“ wird nur der Inhalt dieser Gruppe verglichen.
+  exercises:
+    - id: l08e1
+      type: findall
+      group: jahr
+      title: "Jahreszahlen (benannte Gruppe)"
+      description: "Finde alle Datumsangaben **TT.MM.JJJJ** und liefere die Jahreszahl in der Gruppe **jahr** – also `(?P<jahr>...)`."
+      text: "Am 24.12.2025 und am 01.01.2026, aber nicht 2027."
+      expected: ["2025", "2026"]
+      solution: '\d{2}\.\d{2}\.(?P<jahr>\d{4})'
+    - id: l08e2
+      type: findall
+      group: 1
+      title: "Benutzernamen"
+      description: "Liefere in **Gruppe 1** den Teil einer E-Mail-Adresse **vor** dem @."
+      text: "Kontakt: max@htl.at, anna.berger@schule.at"
+      expected: ["max", "anna.berger"]
+      solution: '([\w.]+)@'
+    - id: l08e3
+      type: findall
+      title: "Doppelte Wörter"
+      description: "Finde direkt wiederholte Wörter (genau gleiche Schreibweise), z.B. „ist ist“."
+      text: "Das ist ist ein Test test, oder oder nicht."
+      expected: ["ist ist", "oder oder"]
+      solution: '\b(\w+) \1\b'
+
+- id: l09
+  title: "Lookahead & Lookbehind"
+  text: |
+    **Lookarounds** prüfen, was vor oder nach der aktuellen Position steht – **ohne** es in den Treffer aufzunehmen.
+
+    | Syntax | Name | Bedeutung |
+    |---|---|---|
+    | `(?=...)` | positiver Lookahead | danach folgt ... |
+    | `(?!...)` | negativer Lookahead | danach folgt **nicht** ... |
+    | `(?<=...)` | positiver Lookbehind | davor steht ... |
+    | `(?<!...)` | negativer Lookbehind | davor steht **nicht** ... |
+
+    Beispiel: `\d+(?=€)` findet in „25€“ nur „25“.
+
+    Mehrere Lookaheads am Anfang sind ideal für **Passwort-Regeln**:
+    `(?=.*\d)(?=.*[A-Z]).{8,}` – mind. 8 Zeichen, mind. eine Ziffer und ein Großbuchstabe.
+
+    > In Python muss ein Lookbehind eine **feste Länge** haben.
+  exercises:
+    - id: l09e1
+      type: match
+      title: "Passwortregel"
+      description: "Mindestens **8 Zeichen**, mindestens **eine Ziffer** und mindestens **ein Großbuchstabe**."
+      match: ["Passwort1", "Abcdefg9", "12345678X"]
+      nomatch: ["passwort1", "Passwort", "Pw1", "12345678"]
+      solution: '(?=.*\d)(?=.*[A-Z]).{8,}'
+    - id: l09e2
+      type: findall
+      title: "Euro-Beträge"
+      description: "Finde nur die **Zahlen**, auf die direkt ein **€** folgt (das € nicht mitnehmen)."
+      text: "Preis: 25€, Rabatt 5%, Versand 4€, Artikel 7"
+      expected: ["25", "4"]
+      solution: '\d+(?=€)'
+    - id: l09e3
+      type: findall
+      title: "Nach dem Dollarzeichen"
+      description: "Finde die Zahlen, vor denen ein **$** steht (ohne das $)."
+      text: "Kosten: $30, 40€, $7 und 9"
+      expected: ["30", "7"]
+      solution: '(?<=\$)\d+'
+
+- id: l10
+  title: "Praxis: Netzwerk & Logs"
+  text: |
+    Zum Abschluss typische Aufgaben aus der IT-Praxis.
+    Hier musst du alles kombinieren, was du gelernt hast.
+
+    **Strategie:**
+
+    1. Zerlege das Format in Teile (z.B. IP = Zahl . Zahl . Zahl . Zahl)
+    2. Schreibe für jeden Teil ein kleines Muster
+    3. Fasse wiederholte Teile mit Gruppen und Quantoren zusammen
+    4. Teste mit Grenzfällen (leere Strings, zu lang, falsche Zeichen)
+
+    Nutze die **Spielwiese**, um Muster auszuprobieren!
+  exercises:
+    - id: l10e1
+      type: match
+      title: "MAC-Adresse"
+      description: "Sechs Paare von Hex-Ziffern, getrennt durch **:** (z.B. 00:1A:2B:3C:4D:5E)."
+      match: ["00:1A:2B:3C:4D:5E", "aa:bb:cc:dd:ee:ff"]
+      nomatch: ["00:1A:2B:3C:4D", "00-1A-2B-3C-4D-5E", "GG:1A:2B:3C:4D:5E", "00:1A:2B:3C:4D:5E:6F"]
+      solution: '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
+    - id: l10e2
+      type: match
+      title: "IPv4-Adresse"
+      description: "Eine gültige IPv4-Adresse – jede Zahl zwischen **0 und 255**, ohne führende Nullen."
+      match: ["192.168.0.1", "10.0.0.255", "255.255.255.255", "0.0.0.0"]
+      nomatch: ["256.1.1.1", "1.2.3", "1.2.3.4.5", "01.1.1.1", "1.2.3.a"]
+      solution: '((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
+    - id: l10e3
+      type: findall
+      group: 1
+      title: "Fehlermeldungen aus dem Log"
+      description: "Liefere in **Gruppe 1** den Text jeder **ERROR**-Meldung."
+      text: "2026-10-17 08:15:02 ERROR Disk full\n2026-10-17 08:16:10 INFO ok\n2026-10-17 09:00:00 ERROR Timeout"
+      expected: ["Disk full", "Timeout"]
+      solution: 'ERROR (.+)'
+    - id: l10e4
+      type: match
+      title: "E-Mail-Adresse (vereinfacht)"
+      description: "Benutzername (Wortzeichen, Punkt, Plus, Minus) **@** Domain mit mindestens einem Punkt."
+      match: ["max.muster@htl-wien.at", "a_b@schule.ac.at", "x+y@test.com"]
+      nomatch: ["max@", "@htl.at", "max htl.at", "max@htl"]
+      solution: '[\w.+-]+@[\w-]+(\.[\w-]+)+'

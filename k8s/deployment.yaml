@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: regex-trainer
+  namespace: regex-trainer
+  labels: { app: regex-trainer }
+spec:
+  replicas: 1                # SQLite -> genau 1 Pod
+  strategy:
+    type: Recreate           # PVC ist ReadWriteOnce
+  selector:
+    matchLabels: { app: regex-trainer }
+  template:
+    metadata:
+      labels: { app: regex-trainer }
+    spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: app
+          image: ghcr.io/OWNER/regex-trainer:latest   # OWNER = dein GitHub-Benutzer/Organisation
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: TZ
+              value: Europe/Vienna
+            - name: TEST_TASKS_FILE
+              value: /config/test_tasks.yaml
+            # Notenschlüssel in Prozent für 1,2,3,4 (darunter 5)
+            - name: GRADE_THRESHOLDS
+              value: "89,76,63,50"
+          envFrom:
+            - secretRef:
+                name: regex-trainer
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tasks
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { memory: 384Mi }
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: regex-trainer-data
+        - name: tasks
+          configMap:
+            name: regex-test-tasks
+            optional: true     # ohne ConfigMap -> Beispielaufgaben

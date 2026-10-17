@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_task.html" import task_cases, pattern_input %}
+{% block title %}{{ lesson.title }} – Regex-Trainer{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{{ url_for('index') }}">Lektionen</a> › Lektion {{ nr }}</div>
+<article class="lesson">
+  <h1>{{ nr }}. {{ lesson.title }}</h1>
+  <div class="prose">{{ lesson.html }}</div>
+</article>
+
+<h2 class="ex-head">Übungen</h2>
+{% for t in lesson.exercises %}
+<section class="card exercise" data-id="{{ t.id }}">
+  <div class="ex-title"><h3>{{ loop.index }}. {{ t.title }}</h3><span class="done-mark" hidden>✓ gelöst</span></div>
+  <div class="desc">{{ t.description|md }}</div>
+  {{ task_cases(t) }}
+  <form class="check-form" onsubmit="Exercise.check(this); return false;">
+    {{ pattern_input('pattern') }}
+    <div class="row">
+      <button class="btn primary" type="submit">Prüfen</button>
+      <button class="btn ghost" type="button" onclick="Exercise.solution(this)">Lösung zeigen</button>
+      <a class="btn ghost" href="#" onclick="Exercise.toPlayground(this); return false;">In Spielwiese öffnen</a>
+    </div>
+  </form>
+  <div class="result" aria-live="polite"></div>
+</section>
+{% endfor %}
+
+<nav class="pager">
+  {% if prev %}<a class="btn" href="{{ url_for('lesson', lid=prev.id) }}">← {{ prev.title }}</a>{% else %}<span></span>{% endif %}
+  {% if next %}<a class="btn primary" href="{{ url_for('lesson', lid=next.id) }}">{{ next.title }} →</a>{% endif %}
+</nav>
+{% endblock %}
+{% block scripts %}<script>Exercise.init();</script>{% endblock %}

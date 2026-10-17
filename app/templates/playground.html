@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Spielwiese – Regex-Trainer{% endblock %}
+{% block content %}
+<h1>Spielwiese</h1>
+<p class="muted">Muster und Text eingeben – Treffer werden live markiert (Python <code>re</code>, <code>finditer</code>).</p>
+
+<div class="card">
+  <label class="lbl" for="pg-pattern">Muster</label>
+  <div class="pattern-input big">
+    <span class="pfx">r"</span><input id="pg-pattern" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="z.B. \d{4}"><span class="sfx">"</span>
+  </div>
+  <div class="flags">
+    <label><input type="checkbox" value="I"> <code>re.I</code> Groß/klein ignorieren</label>
+    <label><input type="checkbox" value="M"> <code>re.M</code> Multiline</label>
+    <label><input type="checkbox" value="S"> <code>re.S</code> Punkt passt auf \n</label>
+    <label><input type="checkbox" value="X"> <code>re.X</code> Verbose</label>
+  </div>
+  <div id="pg-error" class="error" hidden></div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <label class="lbl" for="pg-text">Testtext</label>
+    <textarea id="pg-text" rows="10" spellcheck="false">Die 3AHIT hat am 24.12.2026 um 08:15 Unterricht in Raum 101.
+Kontakt: max.muster@htl-wien.at oder +43 1 5880150
+Server: 192.168.0.10, 10.0.0.1</textarea>
+  </div>
+  <div class="card">
+    <div class="lbl">Treffer <span id="pg-count" class="pill"></span></div>
+    <pre id="pg-highlight" class="highlight"></pre>
+  </div>
+</div>
+
+<div class="card">
+  <div class="lbl">Details</div>
+  <div id="pg-table"></div>
+  <details class="pycode"><summary>Als Python-Code</summary><pre id="pg-python"></pre></details>
+</div>
+{% endblock %}
+{% block scripts %}<script>Playground.init();</script>{% endblock %}

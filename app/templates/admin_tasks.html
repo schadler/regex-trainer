@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_task.html" import task_cases %}
+{% block title %}Aufgabenpool – Lehrerbereich{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{{ url_for('admin') }}">Lehrerbereich</a> › Aufgabenpool</div>
+<h1>Aufgabenpool</h1>
+<p class="muted">Quelle: <code>{{ pool_file }}</code>. Jede Musterlösung wird gegen alle (auch versteckte) Fälle geprüft –
+so erkennst du Tippfehler in den Aufgaben, bevor die Schüler sie sehen.</p>
+{% for t in pool %}{% set c = checks[t.id] %}
+<section class="card">
+  <div class="ex-title"><h3>{{ t.id }} · {{ t.title }}</h3>
+    {% if c.passed == c.total and not c.error %}<span class="pill ok">Lösung ✓ {{ c.passed }}/{{ c.total }}</span>
+    {% else %}<span class="pill bad">Lösung ✗ {{ c.passed }}/{{ c.total }} {{ c.error or '' }}</span>{% endif %}</div>
+  <div class="desc">{{ t.description|md }}</div>
+  {{ task_cases(t) }}
+  <p>Lösung: <code>{{ t.solution }}</code> · {{ t.points|default(1)|pts }} Punkte{% if t.all_or_nothing %} · alles-oder-nichts{% endif %}</p>
+  <details><summary>Versteckte Fälle</summary>
+    {% if t.type == 'match' %}
+      <p>passen: {% for s in t.hidden_match|default([]) %}<code class="case">{{ s }}</code>{% endfor %}</p>
+      <p>nicht: {% for s in t.hidden_nomatch|default([]) %}<code class="case">{{ s if s != '' else '(leer)' }}</code>{% endfor %}</p>
+    {% else %}
+      {% for h in t.hidden|default([]) %}<pre class="text-sample">{{ h.text }}</pre><p>→ <code>{{ h.expected }}</code></p>{% endfor %}
+    {% endif %}
+    {% for r in c.results if not r.ok %}<div class="error">✗ {{ r.text }} – erwartet {{ r.expected if r.kind=='findall' else r.expect }}, erhalten {{ r.got }}</div>{% endfor %}
+  </details>
+</section>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: regex-trainer-data
+  namespace: regex-trainer
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path   # Standard-StorageClass von k3s
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Test starten – Regex-Trainer{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Test starten</h1>
+  <p class="muted">Gib deinen Namen, deine Klasse und den Test-Code ein, den deine Lehrkraft bekannt gibt.
+  Die Zeit läuft ab dem Start.</p>
+  <form method="post" class="form">
+    <label>Vor- und Nachname <input name="name" required maxlength="60" value="{{ form.get('name','') }}" autocomplete="name"></label>
+    <label>Klasse <input name="klasse" required maxlength="10" value="{{ form.get('klasse','') }}" placeholder="z.B. 3AHIT"></label>
+    <label>Test-Code <input name="code" required maxlength="20" value="{{ form.get('code','') }}" class="mono upper" autocomplete="off"></label>
+    <button class="btn primary" type="submit">Test starten</button>
+  </form>
+</div>
+{% endblock %}
