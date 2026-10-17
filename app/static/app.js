@@ -109,13 +109,17 @@ const Playground = {
   init() {
     this.p = document.getElementById("pg-pattern");
     this.t = document.getElementById("pg-text");
+    this.defaultText = this.t.value;   // Standardtext aus dem HTML
     if (location.hash.length > 1) {
       const q = new URLSearchParams(location.hash.slice(1));
       if (q.has("p")) this.p.value = q.get("p");
       if (q.has("t")) this.t.value = q.get("t");
     } else {
       this.p.value = Store.get("pg-p", "\\d+");
-      this.t.value = Store.get("pg-t", this.t.value);
+      // gespeicherten Text nur übernehmen, wenn er auf dem aktuellen Standardtext beruht –
+      // ändert die Lehrkraft den Standardtext, sehen alle Browser automatisch den neuen
+      const saved = Store.get("pg-text-v2", null);
+      if (saved && saved.base === this.defaultText) this.t.value = saved.text;
     }
     let timer;
     const go = () => { clearTimeout(timer); timer = setTimeout(() => this.run(), 200); };
@@ -124,10 +128,11 @@ const Playground = {
     document.querySelectorAll(".flags input").forEach((c) => c.addEventListener("change", go));
     this.run();
   },
+  reset() { this.t.value = this.defaultText; this.run(); },
   flags() { return [...document.querySelectorAll(".flags input:checked")].map((c) => c.value); },
   async run() {
     const pattern = this.p.value, text = this.t.value, flags = this.flags();
-    Store.set("pg-p", pattern); Store.set("pg-t", text);
+    Store.set("pg-p", pattern); Store.set("pg-text-v2", { base: this.defaultText, text });
     const err = document.getElementById("pg-error");
     const hl = document.getElementById("pg-highlight");
     const tbl = document.getElementById("pg-table");
