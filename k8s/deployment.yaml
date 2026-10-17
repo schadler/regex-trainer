@@ -40,6 +40,7 @@ spec:
             - { name: TZ,               value: Europe/Vienna }
             - { name: TEST_TASKS_FILE,  value: /config/test_tasks.yaml }
             - { name: GRADE_THRESHOLDS, value: "89,76,63,50" }   # Notenschlüssel 1-4, darunter 5
+            - { name: ADMIN_IDLE_MINUTES, value: "30" }          # Lehrerbereich: Auto-Logout nach 30 min Inaktivität
           envFrom:
             - secretRef: { name: regex-trainer }
           volumeMounts:

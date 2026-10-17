@@ -23,6 +23,8 @@ DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE, "..", "data"))
 DB_PATH = os.path.join(DATA_DIR, "regex.db")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
 GRACE_SECONDS = 30
+# Lehrerbereich: automatische Abmeldung nach so vielen Minuten ohne Aktivität
+ADMIN_IDLE_MINUTES = int(os.environ.get("ADMIN_IDLE_MINUTES", "30"))
 GRADE_THRESHOLDS = [float(x) for x in os.environ.get("GRADE_THRESHOLDS", "89,76,63,50").split(",")]
 GRADE_NAMES = {1: "Sehr gut", 2: "Gut", 3: "Befriedigend", 4: "Genügend", 5: "Nicht genügend"}
 
@@ -232,11 +234,28 @@ def current_attempt():
     return a, s
 
 
+def _admin_logout_session():
+    session.pop("is_admin", None)
+    session.pop("admin_seen", None)
+
+
+@app.before_request
+def expire_idle_admin():
+    """Lehrer-Anmeldung verfällt nach ADMIN_IDLE_MINUTES ohne Aktivität im Lehrerbereich."""
+    if session.get("is_admin"):
+        seen = session.get("admin_seen", 0)
+        if time.time() - seen > ADMIN_IDLE_MINUTES * 60:
+            _admin_logout_session()
+            if request.path.startswith("/admin") and request.endpoint != "admin_login":
+                flash("Aus Sicherheitsgründen automatisch abgemeldet. Bitte erneut anmelden.", "error")
+
+
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get("is_admin"):
             return redirect(url_for("admin_login", next=request.path))
+        session["admin_seen"] = int(time.time())   # Aktivität im Lehrerbereich verlängert die Anmeldung
         return f(*args, **kwargs)
     return wrapper
 
@@ -448,6 +467,7 @@ def admin_login():
     if request.method == "POST":
         if secrets.compare_digest(request.form.get("password", ""), ADMIN_PASSWORD):
             session["is_admin"] = True
+            session["admin_seen"] = int(time.time())
             nxt = request.args.get("next", "")
             return redirect(nxt if nxt.startswith("/admin") else url_for("admin"))
         time.sleep(1)
@@ -457,7 +477,7 @@ def admin_login():
 
 @app.post("/admin/logout")
 def admin_logout():
-    session.pop("is_admin", None)
+    _admin_logout_session()
     return redirect(url_for("index"))
 
 

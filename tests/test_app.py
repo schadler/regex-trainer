@@ -148,3 +148,27 @@ def test_inactive_code(client):
     s = m.app.test_client()
     r = s.post("/test", data={"name": "A", "klasse": "1A", "code": "ZU"})
     assert "nicht freigeschaltet" in r.get_data(as_text=True)
+
+
+def test_admin_idle_logout(client):
+    m, c = client
+    r = c.post("/admin/login", data={"password": "geheim"})
+    assert r.status_code == 302
+    assert c.get("/admin").status_code == 200          # frisch angemeldet
+    # Inaktivität simulieren: letzte Aktivität liegt länger als ADMIN_IDLE_MINUTES zurück
+    with c.session_transaction() as s:
+        s["admin_seen"] = int(time.time()) - m.ADMIN_IDLE_MINUTES * 60 - 5
+    r = c.get("/admin")
+    assert r.status_code == 302 and "/admin/login" in r.headers["Location"]
+    with c.session_transaction() as s:
+        assert "is_admin" not in s
+
+
+def test_admin_activity_extends_session(client):
+    m, c = client
+    c.post("/admin/login", data={"password": "geheim"})
+    with c.session_transaction() as s:
+        s["admin_seen"] = int(time.time()) - m.ADMIN_IDLE_MINUTES * 60 + 60   # knapp vor Ablauf
+    assert c.get("/admin").status_code == 200
+    with c.session_transaction() as s:
+        assert s["admin_seen"] >= int(time.time()) - 5               # Zeitstempel erneuert
