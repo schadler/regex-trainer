@@ -28,7 +28,7 @@ spec:
           # Digest gepinnt. Neues Image ausrollen:
           #   docker buildx imagetools inspect ghcr.io/schadler/regex-trainer:latest | grep Digest
           #   -> Digest hier eintragen, committen, am NUC: git pull && kubectl apply -k k8s/
-          image: ghcr.io/schadler/regex-trainer:latest@sha256:647186e824d48c6faaa76fbe1db102c0393449f6f13d0bb6ac42434b0dd91651
+          image: ghcr.io/schadler/regex-trainer:latest@sha256:6a93c6d6e3d4849744692fa63af3dc8a773885e8409a719941a6d04d13e90e9f
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
