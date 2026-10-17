@@ -1,14 +1,12 @@
+# Anwenden (am NUC): kubectl diff -k k8s/  →  kubectl apply -k k8s/
+# NICHT enthalten (separat/manuell): secret.yaml, cert-issuer.yaml, ConfigMap regex-test-tasks
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: regex-trainer
 resources:
   - namespace.yaml
+  - middleware.yaml
+  - networkpolicies.yaml
   - pvc.yaml
-  - deployment.yaml
   - service.yaml
+  - deployment.yaml
   - ingress.yaml
-# Image zentral setzen:  kubectl kustomize / kubectl apply -k k8s
-images:
-  - name: ghcr.io/schadler/regex-trainer
-    newName: ghcr.io/schadler/regex-trainer
-    newTag: latest

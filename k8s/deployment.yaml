@@ -5,43 +5,47 @@ metadata:
   namespace: regex-trainer
   labels: { app: regex-trainer }
 spec:
-  replicas: 1                # SQLite -> genau 1 Pod
+  replicas: 1                      # SQLite -> genau 1 Pod
+  revisionHistoryLimit: 3
   strategy:
-    type: Recreate           # PVC ist ReadWriteOnce
+    type: Recreate                 # PVC ist ReadWriteOnce
   selector:
     matchLabels: { app: regex-trainer }
   template:
     metadata:
       labels: { app: regex-trainer }
     spec:
+      automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: ghcr.io/schadler/regex-trainer:latest   # schadler = dein GitHub-Benutzer/Organisation
-          imagePullPolicy: Always
+          # Digest gepinnt. Neues Image ausrollen:
+          #   docker buildx imagetools inspect ghcr.io/schadler/regex-trainer:latest | grep Digest
+          #   -> Digest hier eintragen, committen, am NUC: git pull && kubectl apply -k k8s/
+          image: ghcr.io/schadler/regex-trainer:latest@sha256:647186e824d48c6faaa76fbe1db102c0393449f6f13d0bb6ac42434b0dd91651
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
           ports:
-            - containerPort: 8000
-              name: http
+            - { name: http, containerPort: 8000 }
           env:
-            - name: TZ
-              value: Europe/Vienna
-            - name: TEST_TASKS_FILE
-              value: /config/test_tasks.yaml
-            # Notenschlüssel in Prozent für 1,2,3,4 (darunter 5)
-            - name: GRADE_THRESHOLDS
-              value: "89,76,63,50"
+            - { name: TZ,               value: Europe/Vienna }
+            - { name: TEST_TASKS_FILE,  value: /config/test_tasks.yaml }
+            - { name: GRADE_THRESHOLDS, value: "89,76,63,50" }   # Notenschlüssel 1-4, darunter 5
           envFrom:
-            - secretRef:
-                name: regex-trainer
+            - secretRef: { name: regex-trainer }
           volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: tasks
-              mountPath: /config
-              readOnly: true
+            - { name: data,  mountPath: /data }
+            - { name: tasks, mountPath: /config, readOnly: true }
+            - { name: tmp,   mountPath: /tmp }
           readinessProbe:
             httpGet: { path: /healthz, port: http }
             periodSeconds: 10
@@ -51,12 +55,11 @@ spec:
             periodSeconds: 30
           resources:
             requests: { cpu: 50m, memory: 96Mi }
-            limits: { memory: 384Mi }
+            limits:   { memory: 384Mi }
       volumes:
         - name: data
-          persistentVolumeClaim:
-            claimName: regex-trainer-data
+          persistentVolumeClaim: { claimName: regex-trainer-data }
         - name: tasks
-          configMap:
-            name: regex-test-tasks
-            optional: true     # ohne ConfigMap -> Beispielaufgaben
+          configMap: { name: regex-test-tasks, optional: true }
+        - name: tmp
+          emptyDir: { sizeLimit: 128Mi }

@@ -1,6 +1,3 @@
-# HTTPS für regex.schadler.cloud mit Let's Encrypt (cert-manager)
-# Voraussetzung: k8s/cert-issuer.yaml ist angewendet, DNS zeigt auf den Server,
-# Ports 80 und 443 sind aus dem Internet erreichbar.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -8,7 +5,7 @@ metadata:
   namespace: regex-trainer
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    traefik.ingress.kubernetes.io/router.middlewares: regex-trainer-redirect-https@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: regex-trainer-redirect-https@kubernetescrd,regex-trainer-ratelimit-general@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:
@@ -23,16 +20,4 @@ spec:
             backend:
               service:
                 name: regex-trainer
-                port:
-                  name: http
----
-# http:// automatisch auf https:// umleiten
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: redirect-https
-  namespace: regex-trainer
-spec:
-  redirectScheme:
-    scheme: https
-    permanent: true
+                port: { name: http }
